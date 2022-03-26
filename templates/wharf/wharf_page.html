@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>부두 현황</title>
+  {% load static %}
+  <link rel="stylesheet" type="text/css" href="{% static 'bootstrap.min.css' %}">
+  <!-- 폰트시작 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300&display=swap" rel="stylesheet">
+  <!-- 폰트 끝 -->
+  <!-- 차트  js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.5.0/dist/chart.min.js"></script>
+  <!-- 차트  js 끝-->
+  <!-- 다른폰트 시작 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Gamja+Flower&display=swap" rel="stylesheet">
+  <!-- 다른 폰트 끝 -->
+  <script type="text/javascript" src="https://openapi.map.naver.com/openapi/v3/maps.js?ncpClientId=clkjj6mzd0"></script>
+  <script src=" https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <!--CRMi Style-->
+    <link rel="stylesheet" href="{% static 'src/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'src/css/skin_color.css' %}">
+    <!-- Vendors Style-->
+    <link rel="stylesheet" href="{% static 'src/css/vendors_css.css' %}">
+</head>
+<style>
+  * {
+    font-family: 'Gamja Flower', cursive;
+    /*font-family: 'Noto Sans KR', sans-serif;*/
+  }
+  #map {
+    width: 100%;
+    height: 500px;
+    float: right;
+  }
+  .input-group-text{
+    width: 225px;
+  }
+
+  
+</style>
+<body>
+    <!-- 네비게이션바 시작 -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{% url 'main' %}" style="font-size: xx-large;">힘찬불나방</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+          aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'anchorage' %}" style="font-size: x-large;padding-left: 50px;">정박지 현황</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'wharf' %}" style="font-size: x-large;padding-left: 50px;">부두 현황</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    <!-- 네비게이션바 끝 -->
+
+    <!--컨테이너 수송량 예측 시작-->
+    <div class="card border-3 border-primary" style="margin-left:12px;">
+      <div class="card-body">
+        <h2>컨테이너 수송량 예측</h2>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="container1"style="font-size:x-large;">년도</span>
+          </div>
+          <!-- <input type="text" class="form-control" id="container1-input"style="font-size:x-large;" value="2021"> -->
+          <input type="text" class="form-control" id="container1-input"style="font-size:x-large;">
+        </div>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="container2"style="font-size:x-large;">달</span>
+          </div>
+          <!-- <input type="text" class="form-control" id="container2-input"style="font-size:x-large;"value="11"> -->
+          <input type="text" class="form-control" id="container2-input"style="font-size:x-large;">
+        </div>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="container3"style="font-size:x-large;">국적선/외국선</span>
+          </div>
+          <!-- <input type="text" class="form-control" id="container3-input"style="font-size:x-large;"value="외국선"> -->
+          <input type="text" class="form-control" id="container3-input"style="font-size:x-large;">
+        </div>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="container4"style="font-size:x-large;">FT</span>
+          </div>
+          <!-- <input type="text" class="form-control" id="container4-input"style="font-size:x-large;"value="40"> -->
+          <input type="text" class="form-control" id="container4-input"style="font-size:x-large;">
+        </div>
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="container5"style="font-size:x-large;">공컨테이너/적컨테이너</span>
+          </div>
+          <!-- <input type="text" class="form-control" id="container5-input"style="font-size:x-large;"value="적컨테이너"> -->
+          <input type="text" class="form-control" id="container5-input"style="font-size:x-large;">
+        </div>
+        <button type="button" class="btn btn-primary" id="container-search"
+          onclick="">검색</button>
+      </div>
+      <div  id="container-result"style="
+      position: relative;
+      left: 23px;
+      margin-bottom: 40px;
+      margin-top: 40px;
+      font-size: 60px;
+      display: none;
+      ">
+      </div>
+    </div>
+    <!--컨테이너 수송량 예측 끝-->
+    <!-- <div class="container"> -->
+      <div class="row">
+          <div class="col-lg-6">
+            <canvas id="top5"></canvas>
+          </div>
+          <div class="col-lg-6">
+            <canvas id="year"></canvas>
+          </div>
+          <div class="col-lg-6">
+            <canvas id="month"></canvas>
+          </div>
+          <div class="col-lg-6">
+            <canvas id="season"></canvas>
+          </div>
+      </div>
+    <!-- </div> -->
+
+        <!--정박지 대기율 예측 예측 시작-->
+        <!-- <div class="card border-3 border-primary" style="margin-left:12px;">
+          <div class="card-body">
+            <h2>정박지 대기율 예측</h2>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">신고톤수</span>
+              </div>
+              <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">차항치</span>
+              </div>
+              <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">선박용도</span>
+              </div>
+              <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">servicenum</span>
+              </div>
+              <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+            </div>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">waitingnum</span>
+              </div>
+              <input type="text" class="form-control" id="basic-url" aria-describedby="basic-addon3">
+            </div>
+            <button type="button" class="btn btn-primary"
+              onclick="ShowingAnchor(1,1);ShowingAnchor(2,1);ShowingAnchor(3,1)">검색</button>
+          </div>
+        </div> -->
+        <!--정박지 대기율 예측 끝-->
+</body>
+
+<script>
+  //컨테이너 수송량 검색
+  $(document).on("click", "#container-search", function () {
+    let search_key1 = $('#container1-input').val()
+    let search_key2 = $('#container2-input').val()
+    let search_key3 = $('#container3-input').val()
+    let search_key4 = $('#container4-input').val()
+    let search_key5 = $('#container5-input').val()
+
+    console.log(search_key1)
+    console.log(search_key2)
+    console.log(search_key3)
+    console.log(search_key4)
+    console.log(search_key5)
+
+    $.ajax({
+      type: 'GET',
+      url: "{% url 'container_predict' %}",
+      dataType: "json",
+      data: {
+        'search_key1': search_key1,
+        'search_key2': search_key2,
+        'search_key3': search_key3,
+        'search_key4': search_key4,
+        'search_key5': search_key5,
+      },
+      error: function () {
+        // 선박명이 없는경우 response에 실패
+        alert("값을 넣어주세요.")
+      },
+      success: function (data) {
+        $('#container-result').css("display", "block");
+        $('#container-result').empty();
+        //$('#container-result').append("일단 이런 느낌으로 출력이 나온다고 합니다.")
+
+        data_json = data
+
+        result = data_json['result']
+
+        $('#container-result').append("수송량 : "+result + "TEU")
+      }
+    })
+  })
+
+  //이용수가 가장 많았던 상위 10개 정박지 이용수 시작
+  let context_top5 =document.getElementById('top5').getContext('2d');
+  let top5 = new Chart(context_top5, {
+    type:'bar',
+    data:{
+      labels: ["WAE_01","MBU_01","MDS_02","MDS_01","MBU_02","MDG_01","MBL_01","MDG_02","MDS_03","MDU_05"],
+      datasets:[{
+        data: [2891,2166,1361,1314,1166,1106,931,907, 778, 755],
+        backgroundColor: [
+          'rgba(255,99,132, 100)',
+          'rgba(54,162,235, 100)',
+          'rgba(255,206,86, 100)',
+          'rgba(75,192,192, 100)',
+          'rgba(153,102,255, 100)',
+          'rgba(255,159,64, 100)',
+          'rgba(77,44,64, 100)',
+          'rgba(205,220,57, 100)',
+          'rgba(0,150,136, 100)',
+          'rgba(63,81,181, 100)',
+        ]
+      }],
+    },
+    options: {
+      plugins:{
+        title:{
+          display: true,
+          text: "상위 10개 정박지 이용수",
+        },
+         legend: {
+           display: false
+          },
+      },
+    }
+  })
+  //이용수가 가장 많았던 상위 10개 정박지 이용수 끝
+
+  //년도별 정박지 이용수 시작
+  let context_year =document.getElementById('year').getContext('2d');
+  let year = new Chart(context_year, {
+    type:'bar',
+    data:{
+      labels: ["2017년","2018년","2019년","2020년","2021년"],
+      datasets:[{
+        data: [6314,7171,6568,6348,2663],
+        backgroundColor: [
+          'rgba(255,99,132, 100)',
+          'rgba(54,162,235, 100)',
+          'rgba(255,206,86, 100)',
+          'rgba(75,192,192, 100)',
+          'rgba(153,102,255, 100)',
+          'rgba(255,159,64, 100)',
+          'rgba(77,44,64, 100)',
+          'rgba(205,220,57, 100)',
+          'rgba(0,150,136, 100)',
+          'rgba(63,81,181, 100)',
+        ]
+      }],
+    },
+    options: {
+      plugins:{
+        title:{
+          display: true,
+          text: "년도별 정박지 이용수",
+        },
+         legend: {
+           display: false
+          },
+      },
+    }
+  })
+  //년도별 정박지 이용수 끝
+
+    //월별 정박지 이용수 시작
+    let context_month =document.getElementById('month').getContext('2d');
+    let month = new Chart(context_month, {
+      type:'bar',
+      data:{
+        labels: ["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"],
+        datasets:[{
+          data: [2880/12,2363/12,2801/12,2806/12,2790/12,2268/12,2183/12,2304/12,2221/12,2270/12,2023/12,2155/12],
+          backgroundColor: [
+            'rgba(255,99,132, 100)',
+            'rgba(54,162,235, 100)',
+            'rgba(255,206,86, 100)',
+            'rgba(75,192,192, 100)',
+            'rgba(153,102,255, 100)',
+            'rgba(255,159,64, 100)',
+            'rgba(77,44,64, 100)',
+            'rgba(205,220,57, 100)',
+            'rgba(0,150,136, 100)',
+            'rgba(63,81,181, 100)',
+            'rgba(220,88,42, 100)',
+            'rgba(103,58,183, 100)',
+          ]
+        }],
+      },
+      options: {
+        plugins:{
+          title:{
+            display: true,
+            text: "월별 평균 정박지 이용수",
+          },
+           legend: {
+             display: false
+            },
+        },
+      }
+    })
+    //월별 정박지 이용수 끝
+
+        //계절별 정박지 이용수 시작
+        let context_season =document.getElementById('season').getContext('2d');
+        let season = new Chart(context_season, {
+          type:'bar',
+          data:{
+            labels: ["봄","여름","가을","겨울"],
+            datasets:[{
+              data: [8397/12,6755/12,6514/12,7398/12],
+              backgroundColor: [
+                'rgba(76,175,80, 100)',
+                'rgba(255,152,0, 100)',
+                'rgba(77,44,64, 100)',
+                'rgba(3,169,244, 100)',
+                'rgba(153,102,255, 100)',
+                'rgba(255,159,64, 100)',
+                'rgba(77,44,64, 100)',
+                'rgba(205,220,57, 100)',
+                'rgba(0,150,136, 100)',
+                'rgba(63,81,181, 100)',
+                'rgba(220,88,42, 100)',
+                'rgba(103,58,183, 100)',
+              ]
+            }],
+          },
+          options: {
+            plugins:{
+              title:{
+                display: true,
+                text: "계절별 평균 정박지 이용수",
+              },
+               legend: {
+                 display: false
+                },
+            },
+          }
+        })
+        //계절별 정박지 이용수 끝
+</script>
+
+</html>
